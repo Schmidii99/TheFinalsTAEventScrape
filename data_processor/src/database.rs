@@ -43,6 +43,10 @@ impl Database {
                 FOREIGN KEY('scrapeId') REFERENCES 'scrapes'('id'),
                 FOREIGN KEY('userId') REFERENCES 'users'('id')
             );
+            CREATE INDEX IF NOT EXISTS 'userIndex' ON 'users' (
+                'name',
+                'id'
+            );
             COMMIT;");
 
         Database{conn: conn}
@@ -57,7 +61,7 @@ impl Database {
     }
 
     pub fn does_user_exist(&self, user_name: &str) -> bool {
-        let res: Result<(), rusqlite::Error> = self.conn.query_row("SELECT * FROM users WHERE name=@name;", named_params! {"@name": user_name
+        let res: Result<(), rusqlite::Error> = self.conn.query_row("SELECT id FROM users WHERE name=@name;", named_params! {"@name": user_name
         }, |_row| Ok(()));
         match res {
             Ok(_o) => true,
