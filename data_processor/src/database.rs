@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::{collections::HashMap, fs::File};
 use std::path::Path;
 use rusqlite::{named_params, Connection};
 
@@ -88,4 +88,38 @@ impl Database {
             "@kills": kills
         })
     }
+
+    fn get_all_users(&self) -> Result<Vec<User>, rusqlite::Error> {
+        let mut statement = self.conn.prepare("SELECT name, id FROM users;").unwrap();
+
+        let res = statement.query_map([], |row| {
+            Ok(User {
+                name: row.get(0)?,
+                id: row.get(1)?,
+            })
+        });
+
+        match res {
+            Ok(res) => {
+                res.collect()
+            },
+            Err(_) => Err(rusqlite::Error::QueryReturnedNoRows)
+        }
+    }
+
+    pub fn get_user_hashmap(&self) -> HashMap<String, i32> {
+        let users = self.get_all_users().unwrap();
+
+        let mut map: HashMap<String, i32> = HashMap::new();
+
+        for u in users {
+            map.insert(u.name, u.id);
+        }
+        map
+    }
+}
+
+struct User {
+    name: String,
+    id: i32
 }

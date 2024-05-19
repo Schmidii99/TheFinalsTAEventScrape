@@ -43,18 +43,24 @@ fn main() {
     let now = Instant::now();
 
     let db: Database = Database::initialize();
-    let paths:fs::ReadDir  = fs::read_dir("./data/").unwrap();
+
+    let mut users = db.get_user_hashmap();
+
+    let paths:fs::ReadDir  = fs::read_dir("./data1/").unwrap();
 
     for path in paths {
         let set: Dataset = read_dataset_from_file(&path.as_ref().unwrap().path()).unwrap();
-        _ = db.add_scrape(&path.as_ref().unwrap().file_name().into_string().unwrap()[..26], set.goal, set.total);
+        _ = db.add_scrape(&path.as_ref().unwrap().file_name().into_string().unwrap()[..26].replace("_", ":"), set.goal, set.total);
         for entry in set.entries {
-            if !db.does_user_exist(&entry.name) {
-                _ = db.add_user(&entry.name, &entry.steam, &entry.xbox, &entry.psn)
+            if users.get(&entry.name) == None {
+                _ = db.add_user(&entry.name, &entry.steam, &entry.xbox, &entry.psn);
+                users.insert(entry.name.to_string(), users.len() as i32);
             }
-            _ = db.add_connection(&entry.name, entry.k, entry.r)
+            _ = db.add_connection(&entry.name, entry.k, entry.r);
         }
     }
 
-    println!("{}", now.elapsed().as_secs());
+    println!("Time took: {}ms", now.elapsed().as_millis());
 }
+
+
