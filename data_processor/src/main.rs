@@ -52,9 +52,9 @@ fn main() {
         let set: Dataset = read_dataset_from_file(&path.as_ref().unwrap().path()).unwrap();
         _ = db.add_scrape(&path.as_ref().unwrap().file_name().into_string().unwrap()[..26].replace("_", ":"), set.goal, set.total);
         for entry in set.entries {
-            if users.get(&entry.name) == None {
+            if users.get(&entry.name) == None{
                 _ = db.add_user(&entry.name, &entry.steam, &entry.xbox, &entry.psn);
-                users.insert(entry.name.to_string(), users.len() as i32);
+                users.insert(entry.name.clone(), users.len() as i32);
             }
             _ = db.add_connection(&entry.name, entry.k, entry.r);
         }

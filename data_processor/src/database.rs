@@ -1,6 +1,6 @@
-use std::{collections::HashMap, fs::File};
-use std::path::Path;
+use std::{path::Path, fs::File};
 use rusqlite::{named_params, Connection};
+use rustc_hash::FxHashMap;
 
 const DB_PATH: &str = "./database.sqlite";
 
@@ -60,15 +60,6 @@ impl Database {
         });
     }
 
-    pub fn does_user_exist(&self, user_name: &str) -> bool {
-        let res: Result<(), rusqlite::Error> = self.conn.query_row("SELECT id FROM users WHERE name=@name;", named_params! {"@name": user_name
-        }, |_row| Ok(()));
-        match res {
-            Ok(_o) => true,
-            Err(_e) => false,
-        }
-    }
-
     pub fn add_user(&self, name: &str, steam: &str, xbox: &str, psn: &str) {
         _ = self.conn.execute("INSERT INTO users(name, steam, xbox, psn) VALUES (@name, @steam, @xbox, @psn);", named_params! {
             "@name": name,
@@ -107,10 +98,10 @@ impl Database {
         }
     }
 
-    pub fn get_user_hashmap(&self) -> HashMap<String, i32> {
+    pub fn get_user_hashmap(&self) -> FxHashMap<String, i32> {
         let users = self.get_all_users().unwrap();
 
-        let mut map: HashMap<String, i32> = HashMap::new();
+        let mut map: FxHashMap<String, i32> = FxHashMap::default();
 
         for u in users {
             map.insert(u.name, u.id);
