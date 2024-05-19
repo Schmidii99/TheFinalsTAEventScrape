@@ -37,25 +37,26 @@ def add_scrape(c, goal: str, total: str):
     c.execute("INSERT INTO scrapes(time, goal, total) VALUES (?, ?, ?)", (currentDT, goal, total))
 
 
-def does_user_exist(c, name: str) -> bool:
-    c.execute("SELECT * FROM users WHERE name=?", (name,))
-    result = c.fetchall()
+def add_scrape_with_name(c, name: str, goal: str, total: str):
+    c.execute("INSERT INTO scrapes(time, goal, total) VALUES (?, ?, ?)", (name, goal, total))
 
-    return len(result) > 0
+
+def get_all_users(c) -> dict[str, int]:
+    c.execute("select name, id from users;")
+    return dict(c.fetchall())
 
 
 def add_user(c, name, steam, xbox, psn):
     c.execute("INSERT INTO users(name, steam, xbox, psn) VALUES (?, ?, ?, ?)", (name, steam, xbox, psn))
 
 
-def add_connection(c, player_name, rank, kills):
+def add_connections(c, data: list[tuple[int, int, int]]):
     c.execute("select seq from sqlite_sequence where name='scrapes'")
     scrape_id = c.fetchall()[0][0]
-    c.execute("select id from users where name=?", (player_name,))
-    user_id = c.fetchall()
-    if len(user_id) == 0:
-        return
-    user_id = user_id[0][0]
+    data = [(scrape_id, *x) for x in data]
 
-    c.execute("INSERT INTO users_data(scrapeId, userId, rank, kills) VALUES (?, ?, ?, ?)", (scrape_id, user_id, rank,
-                                                                                            kills))
+    c.executemany("INSERT INTO users_data(scrapeId, userId, rank, kills) VALUES (?, ?, ?, ?)", data)
+
+
+def add_users(c, data: list[tuple[str, str, str, str]]):
+    c.executemany("INSERT INTO users(name, steam, xbox, psn) VALUES (?, ?, ?, ?)", data)
